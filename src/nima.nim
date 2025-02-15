@@ -6,8 +6,6 @@ proc writeVersion(): string = "0.0.1"
 
 var parser = newParser:
   help(&"Nima {writeVersion()} (CLI calculator)")
-  run:
-    echo parser.help
   command("matrix"):
     flag("--add", help="Add two numbers")
     flag("--det", help="Calculate determinant")

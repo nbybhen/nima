@@ -5,8 +5,11 @@ Main goals are to give me an opportunity to develop my mathematical skills [and 
 
 ## Example Usage (TODO)
 ```bash
-# Runs CLI
-nimble run -- [category] --[operation]
+# Builds project
+nimble run
+
+# Run CLI
+./nima [category] --[operation]
 
 # Runs unit tests
 nimble test
