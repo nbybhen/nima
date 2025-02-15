@@ -14,7 +14,6 @@ nimble test
 
 ## Planned TODOs
 ### General
-- [x] Switch funcs to `lib/`
 - [x] Add unit tests
 - [ ] Add CLI parsing
 
@@ -23,7 +22,7 @@ nimble test
 - [x] Subtraction
 - [x] Scalar multiplication
 - [x] Dot product
-- [ ] Determinant
+- [x] Determinant
 - [ ] Transpose
 
 ### Vectors (TODO)

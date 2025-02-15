@@ -3,6 +3,7 @@ import std/sequtils
 import std/strutils
 import std/strformat
 import std/sugar
+import std/math
 
 type Matrix* = object
   rows: int
@@ -79,3 +80,28 @@ proc buildMatrix*(name: string): Matrix =
 
 proc scalarMult*(s: int, m: var Matrix) =
   m.data = m.data.mapIt(it.map(inner => inner * s))
+
+proc getMinor*(m: Matrix, row, col: int): Matrix =
+  let minor = collect(newSeq):
+    for i in 0..<m.rows:
+      if i != row:
+        let rowData = m.data[i]
+        concat(rowData[0..<col], rowData[col+1..^1])
+  newMatrix(data = minor)
+
+proc determinant*(m: Matrix): int =
+  case m.rows:
+  of 2:
+    result = (m.data[0][0] * m.data[1][1]) - (m.data[0][1] * m.data[1][0])
+  of 3:
+    result = (m.data[0][0] * m.data[1][1] * m.data[2][2]) +
+              (m.data[0][1] * m.data[1][2] * m.data[2][0]) +
+              (m.data[0][2] * m.data[1][0] * m.data[2][1]) -
+              (m.data[0][2] * m.data[1][1] * m.data[2][0]) -
+              (m.data[0][1] * m.data[1][0] * m.data[2][2]) -
+              (m.data[0][0] * m.data[1][2] * m.data[2][1])
+  else:
+    var topRow = m.data[0]
+    for i in 0..<m.rows:
+      let minor = getMinor(m, 0, i)
+      result += (minor.determinant() * (topRow[i] * (-1) ^ i))

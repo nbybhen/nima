@@ -10,6 +10,7 @@ var parser = newParser:
     echo parser.help
   command("matrix"):
     flag("--add", help="Add two numbers")
+    flag("--det", help="Calculate determinant")
     run:
       if opts.add:
         echo "Adding two matrices..."
@@ -17,4 +18,9 @@ var parser = newParser:
           matA = buildMatrix("A")
           matB = buildMatrix("B")
         echo &"Matrix C: {matA + matB}"
+      elif opts.det:
+        echo "Calculating determinant..."
+        var
+          matA = buildMatrix("A")
+        echo &"Determinant of Matrix A: {matA.determinant()}"
 parser.run()
