@@ -1,7 +1,7 @@
 import unittest
 import nima/matrix
 
-suite "Basic operations":
+suite "Matrix operations":
   var matA: Matrix = newMatrix(2, 2, @[@[1, 2], @[3, 4]])
   var matB: Matrix = newMatrix(2, 2, @[@[5, 6], @[7, 8]])
   var matA3x3: Matrix = newMatrix(3, 3, @[@[0, 3, 5], @[5, 5, 2], @[3, 4, 3]])

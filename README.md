@@ -29,5 +29,7 @@ nimble test
 - [ ] Transpose
 
 ### Vectors (TODO)
+- [ ] Basic operations
+- [ ] Scalar multiplication
 
 ### Expressions (TODO)

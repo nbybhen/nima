@@ -78,9 +78,6 @@ proc buildMatrix*(name: string): Matrix =
       break
     result.data.add(row.mapIt(it.parseInt))
 
-proc scalarMult*(s: int, m: var Matrix) =
-  m.data = m.data.mapIt(it.map(inner => inner * s))
-
 proc getMinor*(m: Matrix, row, col: int): Matrix =
   let minor = collect(newSeq):
     for i in 0..<m.rows:
