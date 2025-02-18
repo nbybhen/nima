@@ -4,17 +4,18 @@ import std/strutils
 import std/strformat
 import std/sugar
 import std/math
+import vector
 
 type Matrix* = object
   rows: int
   cols: int
-  data: seq[seq[int]] = @[@[]]
+  data: seq[Vector] = @[newVector(@[])]
 
-func getColumn(idx: int, m: Matrix): seq[int] =
+func getColumn(idx: int, m: Matrix): Vector =
   return m.data.mapIt(it[idx])
 
 # TODO: Overload `+=` for mutating on basic operations
-proc `+`*(m1: Matrix, m2: Matrix): Matrix =
+proc `+`*(m1, m2: Matrix): Matrix =
   if m1.rows != m2.rows or m1.cols != m2.cols:
     echo &"Matrices must be the same dimensions!"
     return
@@ -22,22 +23,18 @@ proc `+`*(m1: Matrix, m2: Matrix): Matrix =
   result.cols = m1.cols
 
   for i in 0..<m1.rows:
-    result.data.add(@[])
-    for j in 0..<m1.cols:
-      result.data[i].add(m1.data[i][j] + m2.data[i][j])
+    result.data.add(m1.data[i] + m2.data[i])
 
-proc `-`*(m1: Matrix, m2: Matrix): Matrix =
+proc `-`*(m1, m2: Matrix): Matrix =
   if m1.rows != m2.rows or m1.cols != m2.cols:
     echo &"Matrices must be the same dimensions!"
     return
   result.rows = m1.rows
   result.cols = m1.cols
   for i in 0..<m1.rows:
-    result.data.add(@[])
-    for j in 0..<m1.cols:
-      result.data[i].add(m1.data[i][j] - m2.data[i][j])
+    result.data.add(m1.data[i] - m2.data[i])
 
-proc `*`*(m1: Matrix, m2: Matrix): Matrix =
+proc `*`*(m1, m2: Matrix): Matrix =
   if m1.cols != m2.rows:
     echo &"Matrices are not of compatible size!"
     return
@@ -45,15 +42,14 @@ proc `*`*(m1: Matrix, m2: Matrix): Matrix =
   for row in m1.data:
     result.data.add(@[])
     for idx in 0..<m2.cols:
-      var rowcol = zip(row, getColumn(idx, m2))
-      result.data[^1].add(rowcol.map(x => x[0] * x[1]).foldl(a + b))
+      result.data[^1].add(row * getColumn(idx, m2))
 
   result.rows = result.data.len
   result.cols = result.data[^1].len
 
 # TODO: Look into initializing seq with size or using arrays over sequences.
 # e.g. newSeqWith(rows, newSeq[int](cols))
-proc newMatrix*(rows, cols: int = 0, data: seq[seq[int]] = @[@[]]): Matrix =
+proc newMatrix*(rows, cols: int = 0, data: seq[Vector]): Matrix =
   if rows == 0 and cols == 0:
     result.rows = data.len
     result.cols = data[0].len

@@ -10,26 +10,29 @@ var parser = newParser:
   help(&"Nima {writeVersion()} (CLI calculator)")
   command("vector"):
     flag("--scale", help="Multiplies vector by scalar")
-    option("--val", help="Value to multiply vector by", default=some("1"))
+    option("--s", help="Value to multiply vector by", default=some("1"))
     run:
       if opts.scale:
         echo "Scaling vector..."
         var vecA = buildVector()
-        vecA.scalarMult(opts.val.parseInt())
+        vecA.scalarMult(opts.s.parseInt())
         echo &"VecA: {repr(vecA)}"
   command("matrix"):
-    flag("--add", help="Add two numbers")
+    flag("--add", help="Add two matrices")
+    flag("--sub", help="Subtract two matrices")
+    flag("--mul", help="Multiply two matrices")
     flag("--det", help="Calculate determinant")
     run:
+      let matA = buildMatrix("A")
       if opts.add:
-        echo "Adding two matrices..."
-        var
-          matA = buildMatrix("A")
-          matB = buildMatrix("B")
+        let matB = buildMatrix("B")
         echo &"Matrix C: {matA + matB}"
+      elif opts.sub:
+        let matB = buildMatrix("B")
+        echo &"Matrix C: {matA - matB}"
+      elif opts.mul:
+        let matB = buildMatrix("B")
+        echo &"Matrix C: {matA * matB}"
       elif opts.det:
-        echo "Calculating determinant..."
-        var
-          matA = buildMatrix("A")
         echo &"Determinant of Matrix A: {matA.determinant()}"
 parser.run()
