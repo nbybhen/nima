@@ -2,26 +2,25 @@ import std/sequtils
 import std/strutils
 
 
-type Vector* = seq[int]
+type Vector*[T] = seq[T]
 
-proc `+`*(self, other: Vector): Vector =
+proc `+`*[T](self, other: Vector[T]): Vector[T] =
   assert(self.len == other.len, "Vectors must be the same length")
   result.add(zip(self, other).mapIt(it[0] + it[1]))
 
-proc `-`*(self, other: Vector): Vector =
+proc `-`*[T](self, other: Vector[T]): Vector[T] =
   assert(self.len == other.len, "Vectors must be the same length")
   result.add(zip(self, other).mapIt(it[0] - it[1]))
 
-proc `*`*(self, other: Vector): int =
+proc `*`*[T](self, other: Vector[T]): T =
   assert(self.len == other.len, "Vectors must be the same length")
   zip(self, other).mapIt(it[0] * it[1]).foldl(a + b)
 
-proc buildVector*(): Vector =
-  echo "Enter vector elements separated by spaces: "
-  result = readLine(stdin).splitWhitespace().mapIt(it.parseInt)
+proc `*=`*[T](self: var Vector[T], scalar: T) =
+  self.applyIt(it * scalar)
 
-proc newVector*(data: seq[int]): Vector =
+proc newVector*[T](data: seq[T]): Vector[T] =
   result = data
 
-proc scalarMult*(self: var Vector, scalar: int) =
+proc scalarMult*[T](self: var Vector[T], scalar: T) =
   self.applyIt(it * scalar)

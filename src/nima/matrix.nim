@@ -6,38 +6,33 @@ import std/sugar
 import std/math
 import vector
 
-type Matrix* = object
-  rows: int
-  cols: int
-  data: seq[Vector] = @[newVector(@[])]
+type Matrix*[T] = object
+  rows*: int
+  cols*: int
+  data*: seq[Vector[T]]
 
-func getColumn(idx: int, m: Matrix): Vector =
+func getColumn[T](idx: int, m: Matrix[T]): Vector[T] =
   return m.data.mapIt(it[idx])
 
 # TODO: Overload `+=` for mutating on basic operations
-proc `+`*(m1, m2: Matrix): Matrix =
-  if m1.rows != m2.rows or m1.cols != m2.cols:
-    echo &"Matrices must be the same dimensions!"
-    return
+proc `+`*[T](m1, m2: Matrix[T]): Matrix[T] =
+  assert(m1.rows == m2.rows and m1.cols == m2.cols, "Matrices must be the same dimensions!")
   result.rows = m1.rows
   result.cols = m1.cols
 
   for i in 0..<m1.rows:
     result.data.add(m1.data[i] + m2.data[i])
 
-proc `-`*(m1, m2: Matrix): Matrix =
-  if m1.rows != m2.rows or m1.cols != m2.cols:
-    echo &"Matrices must be the same dimensions!"
-    return
+proc `-`*[T](m1, m2: Matrix[T]): Matrix[T] =
+  assert(m1.rows == m2.rows and m1.cols == m2.cols, "Matrices must be the same dimensions!")
   result.rows = m1.rows
   result.cols = m1.cols
+
   for i in 0..<m1.rows:
     result.data.add(m1.data[i] - m2.data[i])
 
-proc `*`*(m1, m2: Matrix): Matrix =
-  if m1.cols != m2.rows:
-    echo &"Matrices are not of compatible size!"
-    return
+proc `*`*[T](m1, m2: Matrix[T]): Matrix[T] =
+  assert(m1.cols == m2.rows, "Matrices are not of compatible size!")
 
   for row in m1.data:
     result.data.add(@[])
@@ -47,9 +42,13 @@ proc `*`*(m1, m2: Matrix): Matrix =
   result.rows = result.data.len
   result.cols = result.data[^1].len
 
+proc `*=`*[T](m: var Matrix[T], scalar: float) =
+  for i in 0..<m.rows:
+    m.data[i] = m.data[i].mapIt(it * (scalar).T)
+
 # TODO: Look into initializing seq with size or using arrays over sequences.
 # e.g. newSeqWith(rows, newSeq[int](cols))
-proc newMatrix*(rows, cols: int = 0, data: seq[Vector]): Matrix =
+proc newMatrix*[T](rows, cols: int = 0, data: seq[Vector[T]]): Matrix[T] =
   if rows == 0 and cols == 0:
     result.rows = data.len
     result.cols = data[0].len
@@ -58,23 +57,8 @@ proc newMatrix*(rows, cols: int = 0, data: seq[Vector]): Matrix =
     result.cols = cols
   result.data = data
 
-proc buildMatrix*(name: string): Matrix =
-  let
-    dim = readLineFromStdin(&"Enter the dimensions for Matrix {name} (e.g. '2x2'): ")
-    s = split(dim, {'x'}, 1)
-  (result.rows, result.cols) = (s[0].parseInt, s[1].parseInt)
-
-  echo "Enter the matrix row by row (space-separated): "
-
-  # TODO: Exception handling
-  for i in 0..<result.rows:
-    let row = readLine(stdin).splitWhitespace()
-    if row.len != result.cols:
-      echo &"Invalid number of arguments supplied: received {row.len} args, but expected {result.cols}."
-      break
-    result.data.add(row.mapIt(it.parseInt))
-
-proc getMinor*(m: Matrix, row, col: int): Matrix =
+proc getMinor*[T](m: Matrix[T], row, col: int): Matrix[T] =
+  assert(m.rows > 2 and m.cols > 2, "Matrix must be greater than 2x2")
   let minor = collect(newSeq):
     for i in 0..<m.rows:
       if i != row:
@@ -82,10 +66,10 @@ proc getMinor*(m: Matrix, row, col: int): Matrix =
         concat(rowData[0..<col], rowData[col+1..^1])
   newMatrix(data = minor)
 
-proc determinant*(m: Matrix): int =
+proc determinant*[T](m: Matrix[T]): T =
   case m.rows:
   of 2:
-    result = (m.data[0][0] * m.data[1][1]) - (m.data[0][1] * m.data[1][0])
+    result = m.data[0][0] * m.data[1][1] - m.data[0][1] * m.data[1][0]
   of 3:
     result = (m.data[0][0] * m.data[1][1] * m.data[2][2]) +
               (m.data[0][1] * m.data[1][2] * m.data[2][0]) +
@@ -97,4 +81,25 @@ proc determinant*(m: Matrix): int =
     var topRow = m.data[0]
     for i in 0..<m.rows:
       let minor = getMinor(m, 0, i)
-      result += (minor.determinant() * (topRow[i] * (-1) ^ i))
+      result += (minor.determinant() * (topRow[i] * ((-1) ^ i).T))
+
+proc adjugate[T](m: var Matrix[T]) =
+  for i in 0..<ceil(m.rows/2).int:
+    for j in (i+1)..<m.cols:
+      if i != j:
+        (m.data[i][j], m.data[j][i]) = (m.data[j][i], m.data[i][j])
+
+
+proc inverse*[T](m: Matrix[T]): Matrix[T] =
+  assert(m.rows == m.cols, "Matrix must be square")
+  assert(m.determinant() != 0, "Matrix must be invertible")
+  result.rows = m.rows
+  result.cols = m.cols
+
+  for i in 0..<m.rows:
+    result.data.add(@[])
+    for j in 0..<m.cols:
+      let minor = getMinor(m, i, j)
+      result.data[^1].add(minor.determinant() * ((-1) ^ (i + j)).T)
+  result.adjugate()
+  result *= (1 / m.determinant())

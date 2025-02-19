@@ -18,18 +18,20 @@ nimble test
 ## Planned TODOs
 ### General
 - [x] Add unit tests
-- [ ] Add CLI parsing
+- [x] Add CLI parsing
 
 ### Matrices
-- [x] Addition
-- [x] Subtraction
+- [x] Basic operations (+, -, *)
 - [x] Scalar multiplication
 - [x] Dot product
 - [x] Determinant
+- [x] Convert to `Matrix[T]`
+- [x] Inverse
 - [ ] Transpose
 
-### Vectors (TODO)
-- [ ] Basic operations
+### Vectors
+- [x] Basic operations (+, -, *)
 - [ ] Scalar multiplication
+- [x] Convert to `Vector[T]`
 
 ### Expressions (TODO)
