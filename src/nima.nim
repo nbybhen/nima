@@ -6,7 +6,7 @@ import argparse
 
 proc writeVersion(): string = "0.0.1"
 
-proc buildMatrix*[T](name: string, t: T): Matrix[float] =
+proc buildMatrix*(name: string): Matrix[float] =
   let
     dim = readLineFromStdin(&"Enter the dimensions for Matrix {name} (e.g. '2x2'): ")
     s = split(dim, {'x'}, 1)
@@ -20,7 +20,7 @@ proc buildMatrix*[T](name: string, t: T): Matrix[float] =
     assert(row.len == result.cols, &"Invalid number of arguments supplied: received {row.len} args, but expected {result.cols}.")
     result.data.add(row.mapIt(it.parseFloat))
 
-proc buildVector*[T](t: T): Vector[float] =
+proc buildVector*(name: string): Vector[float] =
   echo "Enter vector elements separated by spaces: "
   result = readLine(stdin).splitWhitespace().mapIt(it.parseFloat)
 
@@ -32,9 +32,9 @@ var parser = newParser:
     run:
       if opts.scale:
         echo "Scaling vector..."
-        var vecA = buildVector(2.0)
+        var vecA = buildVector("A")
         vecA.scalarMult(opts.s.parseFloat())
-        echo &"VecA: {repr(vecA)}"
+        echo &"Vector A: {repr(vecA)}"
   command("matrix"):
     flag("--add", help="Add two matrices")
     flag("--sub", help="Subtract two matrices")
@@ -42,15 +42,15 @@ var parser = newParser:
     flag("--det", help="Calculate determinant")
     flag("--inv", help="Calculate inverse")
     run:
-      let matA = buildMatrix("A", 2.0)
+      let matA = buildMatrix("A")
       if opts.add:
-        let matB = buildMatrix("B", 2.0)
+        let matB = buildMatrix("B")
         echo &"Matrix C: {matA + matB}"
       elif opts.sub:
-        let matB = buildMatrix("B", 2.0)
+        let matB = buildMatrix("B")
         echo &"Matrix C: {matA - matB}"
       elif opts.mul:
-        let matB = buildMatrix("B", 2.0)
+        let matB = buildMatrix("B")
         echo &"Matrix C: {matA * matB}"
       elif opts.det:
         echo &"Determinant of Matrix A: {matA.determinant()}"

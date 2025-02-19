@@ -37,14 +37,15 @@ proc `*`*[T](m1, m2: Matrix[T]): Matrix[T] =
   for row in m1.data:
     result.data.add(@[])
     for idx in 0..<m2.cols:
-      result.data[^1].add(row * getColumn(idx, m2))
+      # TODO: Uhhh change this??? (Look into splitting Matrix/Vector types)
+      result.data[^1].add((((row * getColumn(idx, m2)).float).formatFloat(ffDecimal, 2).parseFloat).T)
 
   result.rows = result.data.len
   result.cols = result.data[^1].len
 
 proc `*=`*[T](m: var Matrix[T], scalar: float) =
   for i in 0..<m.rows:
-    m.data[i] = m.data[i].mapIt(it * (scalar).T)
+    m.data[i] = m.data[i].mapIt(((it * scalar).formatFloat(ffDecimal, 2).parseFloat).T)
 
 # TODO: Look into initializing seq with size or using arrays over sequences.
 # e.g. newSeqWith(rows, newSeq[int](cols))

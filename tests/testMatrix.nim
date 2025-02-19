@@ -26,5 +26,5 @@ suite "Matrix operations":
 
   test "Inverse":
     var matT = newMatrix(data = @[ @[3.0, 0.0, 2.0], @[2.0, 0.0, -2.0], @[0.0, 1.0, 1.0] ])
-    #check matT.inverse() == newMatrix(data = @[ @[0.2, 0.2, 0], @[-0.2, 0.3, 1], @[0.2, -0.3, 0] ])
+    check matT.inverse() == newMatrix(data = @[ @[0.2, 0.2, 0], @[-0.2, 0.3, 1], @[0.2, -0.3, 0] ])
     echo "Inverse test: ", repr(matT.inverse())

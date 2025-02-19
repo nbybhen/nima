@@ -19,15 +19,16 @@ nimble test
 ### General
 - [x] Add unit tests
 - [x] Add CLI parsing
-
+- [ ] Add static versions (?)
 ### Matrices
-- [x] Basic operations (+, -, *)
+- [x] Basic operations `(+, -, *)`
 - [x] Scalar multiplication
 - [x] Dot product
 - [x] Determinant
 - [x] Convert to `Matrix[T]`
 - [x] Inverse
 - [ ] Transpose
+- [ ] Solve systems of equations
 
 ### Vectors
 - [x] Basic operations (+, -, *)
