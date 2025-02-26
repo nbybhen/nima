@@ -1,4 +1,3 @@
-import std/rdstdin
 import std/sequtils
 import std/strutils
 import std/strformat
@@ -7,11 +6,11 @@ import std/math
 import vector
 
 type Matrix*[T] = object
-  rows*: int
-  cols*: int
+  rows*: int = 0
+  cols*: int = 0
   data*: seq[Vector[T]]
 
-func getColumn[T](idx: int, m: Matrix[T]): Vector[T] =
+func getColumn*[T](idx: int, m: Matrix[T]): Vector[T] =
   return m.data.mapIt(it[idx])
 
 # TODO: Overload `+=` for mutating on basic operations
@@ -38,14 +37,14 @@ proc `*`*[T](m1, m2: Matrix[T]): Matrix[T] =
     result.data.add(@[])
     for idx in 0..<m2.cols:
       # TODO: Uhhh change this??? (Look into splitting Matrix/Vector types)
-      result.data[^1].add((((row * getColumn(idx, m2)).float).formatFloat(ffDecimal, 2).parseFloat).T)
+      result.data[^1].add((((row * getColumn(idx, m2)).float).formatFloat(ffDecimal, 6).parseFloat).T)
 
   result.rows = result.data.len
   result.cols = result.data[^1].len
 
 proc `*=`*[T](m: var Matrix[T], scalar: float) =
   for i in 0..<m.rows:
-    m.data[i] = m.data[i].mapIt(((it * scalar).formatFloat(ffDecimal, 2).parseFloat).T)
+    m.data[i] = m.data[i].mapIt(((it * scalar).formatFloat(ffDecimal, 6).parseFloat).T)
 
 # TODO: Look into initializing seq with size or using arrays over sequences.
 # e.g. newSeqWith(rows, newSeq[int](cols))
@@ -84,23 +83,29 @@ proc determinant*[T](m: Matrix[T]): T =
       let minor = getMinor(m, 0, i)
       result += (minor.determinant() * (topRow[i] * ((-1) ^ i).T))
 
-proc adjugate[T](m: var Matrix[T]) =
-  for i in 0..<ceil(m.rows/2).int:
-    for j in (i+1)..<m.cols:
-      if i != j:
-        (m.data[i][j], m.data[j][i]) = (m.data[j][i], m.data[i][j])
+proc transpose*[T](m: Matrix[T]): Matrix[T] =
+  result.rows = m.cols
+  result.cols = m.rows
 
+  for i in 0..<result.rows:
+    result.data.add(@[])
+    for j in 0..<result.cols:
+      result.data[^1].add(m.data[j][i])
 
 proc inverse*[T](m: Matrix[T]): Matrix[T] =
-  assert(m.rows == m.cols, "Matrix must be square")
+  assert(m.rows == m.cols, &"Invalid {m.rows}x{m.cols}: Matrix must be square")
   assert(m.determinant() != 0, "Matrix must be invertible")
   result.rows = m.rows
   result.cols = m.cols
-
-  for i in 0..<m.rows:
-    result.data.add(@[])
-    for j in 0..<m.cols:
-      let minor = getMinor(m, i, j)
-      result.data[^1].add(minor.determinant() * ((-1) ^ (i + j)).T)
-  result.adjugate()
+  case m.rows:
+  of 2:
+    result.data.add(@[m.data[1][1], -m.data[0][1]])
+    result.data.add(@[-m.data[1][0], m.data[0][0]])
+  else:
+    for i in 0..<m.rows:
+      result.data.add(@[])
+      for j in 0..<m.cols:
+        let minor = getMinor(m, i, j)
+        result.data[^1].add(minor.determinant() * ((-1) ^ (i + j)).T)
+    result = result.transpose()
   result *= (1 / m.determinant())

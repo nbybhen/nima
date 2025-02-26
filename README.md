@@ -14,25 +14,3 @@ nimble run
 # Runs unit tests
 nimble test
 ```
-
-## Planned TODOs
-### General
-- [x] Add unit tests
-- [x] Add CLI parsing
-- [ ] Add static versions (?)
-### Matrices
-- [x] Basic operations `(+, -, *)`
-- [x] Scalar multiplication
-- [x] Dot product
-- [x] Determinant
-- [x] Convert to `Matrix[T]`
-- [x] Inverse
-- [ ] Transpose
-- [ ] Solve systems of equations
-
-### Vectors
-- [x] Basic operations (+, -, *)
-- [ ] Scalar multiplication
-- [x] Convert to `Vector[T]`
-
-### Expressions (TODO)

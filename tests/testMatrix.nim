@@ -1,4 +1,5 @@
 import unittest
+import std/strformat
 import nima/matrix
 
 suite "Matrix operations":
@@ -27,4 +28,8 @@ suite "Matrix operations":
   test "Inverse":
     var matT = newMatrix(data = @[ @[3.0, 0.0, 2.0], @[2.0, 0.0, -2.0], @[0.0, 1.0, 1.0] ])
     check matT.inverse() == newMatrix(data = @[ @[0.2, 0.2, 0], @[-0.2, 0.3, 1], @[0.2, -0.3, 0] ])
-    echo "Inverse test: ", repr(matT.inverse())
+
+  # TODO
+  test "Transpose":
+    var matT = newMatrix(data = @[ @[6, 4, 24], @[1, -9, 8] ])
+    check matT.transpose() == newMatrix(data = @[ @[6, 1], @[4, -9], @[24, 8] ])

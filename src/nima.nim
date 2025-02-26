@@ -1,10 +1,10 @@
 import nima/matrix
 import nima/vector
-import std/strformat
-import std/rdstdin
+import std/[strformat, sugar, math, rdstdin, sequtils]
 import argparse
 
 proc writeVersion(): string = "0.0.1"
+
 
 proc buildMatrix*(name: string): Matrix[float] =
   let
@@ -24,8 +24,31 @@ proc buildVector*(name: string): Vector[float] =
   echo "Enter vector elements separated by spaces: "
   result = readLine(stdin).splitWhitespace().mapIt(it.parseFloat)
 
+proc soeRepl(): Matrix[float] =
+  # TODO: Exception handling + input cleaning
+  let num = readLineFromStdin("Enter the number of equations (e.g. 3): ").parseInt
+  var mtx = newMatrix(num, num, data = @[newVector[float](@[])])
+  var vec = newMatrix[float](num, 1, @[])
+  var buf = 0.0
+  for i in 0..<num:
+    mtx.data[i] = (readLine(stdin).splitWhitespace().mapIt(it.parseFloat))
+    vec.data.add(@[mtx.data[i].pop()])
+    if i != num - 1:
+      mtx.data.add(@[])
+  result = mtx.inverse()
+  result = (result * vec)
+  result.data = result.data.mapIt(it.map(x => round(x, 2)))
+
+
 var parser = newParser:
   help(&"Nima {writeVersion()} (CLI calculator)")
+  command("solve"):
+    flag("--soe", help="Solves a system of equations")
+    run:
+      if opts.soe:
+        echo "Solving system of equations..."
+        # TODO: Format returned data
+        echo &"Solution: {soeRepl().data}"
   command("vector"):
     flag("--scale", help="Multiplies vector by scalar")
     option("--s", help="Value to multiply vector by", default=some("1"))
