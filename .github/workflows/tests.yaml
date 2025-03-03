@@ -8,12 +8,15 @@ on:
 jobs:
   nimble_tests:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        nim: ["stable", "devel"]
     steps:
       - uses: actions/checkout@v4
       - uses: jiro4989/setup-nim-action@v1
         with:
-          nim-version: "stable"
+          nim-version: ${{ matrix.nim }}
       - name: Build
         run: nimble build
       - name: Run tests
