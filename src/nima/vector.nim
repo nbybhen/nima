@@ -1,6 +1,4 @@
 import std/sequtils
-import std/strutils
-
 
 type Vector*[T] = seq[T]
 

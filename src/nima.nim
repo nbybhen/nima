@@ -1,5 +1,4 @@
-import nima/matrix
-import nima/vector
+import nima/[matrix, vector]
 import std/[strformat, sugar, math, rdstdin, sequtils]
 import argparse
 

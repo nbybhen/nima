@@ -1,8 +1,4 @@
-import std/sequtils
-import std/strutils
-import std/strformat
-import std/sugar
-import std/math
+import std/[sequtils, strutils, strformat, sugar, math]
 import vector
 
 type Matrix*[T] = object
@@ -48,7 +44,7 @@ proc `*=`*[T](m: var Matrix[T], scalar: float) =
 
 # TODO: Look into initializing seq with size or using arrays over sequences.
 # e.g. newSeqWith(rows, newSeq[int](cols))
-proc newMatrix*[T](rows, cols: int = 0, data: seq[Vector[T]]): Matrix[T] =
+proc newMatrix*[T](rows: int = 0, cols: int = 0, data: seq[Vector[T]]): Matrix[T] =
   if rows == 0 and cols == 0:
     result.rows = data.len
     result.cols = data[0].len
@@ -80,7 +76,7 @@ proc determinant*[T](m: Matrix[T]): T =
   else:
     var topRow = m.data[0]
     for i in 0..<m.rows:
-      let minor = getMinor(m, 0, i)
+      let minor = m.getMinor(0, i)
       result += (minor.determinant() * (topRow[i] * ((-1) ^ i).T))
 
 proc transpose*[T](m: Matrix[T]): Matrix[T] =
@@ -105,7 +101,7 @@ proc inverse*[T](m: Matrix[T]): Matrix[T] =
     for i in 0..<m.rows:
       result.data.add(@[])
       for j in 0..<m.cols:
-        let minor = getMinor(m, i, j)
+        let minor = m.getMinor(i, j)
         result.data[^1].add(minor.determinant() * ((-1) ^ (i + j)).T)
     result = result.transpose()
   result *= (1 / m.determinant())

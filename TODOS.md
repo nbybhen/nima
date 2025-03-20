@@ -11,7 +11,7 @@
 - [x] Determinant
 - [x] Convert to `Matrix[T]`
 - [x] Inverse
-- [ ] Transpose
+- [x] Transpose
 
 ### Vectors
 - [x] Basic operations (+, -, *)
