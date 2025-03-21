@@ -32,19 +32,25 @@ proc `*`*[T](m1, m2: Matrix[T]): Matrix[T] =
   for row in m1.data:
     result.data.add(@[])
     for idx in 0..<m2.cols:
-      # TODO: Uhhh change this??? (Look into splitting Matrix/Vector types)
-      result.data[^1].add((((row * getColumn(idx, m2)).float).formatFloat(ffDecimal, 6).parseFloat).T)
+      when T is int:
+        result.data[^1].add(row * getColumn(idx, m2))
+      else:
+        result.data[^1].add((row * getColumn(idx, m2)).formatFloat(ffDecimal, 6).parseFloat)
 
   result.rows = result.data.len
   result.cols = result.data[^1].len
 
 proc `*=`*[T](m: var Matrix[T], scalar: float) =
   for i in 0..<m.rows:
-    m.data[i] = m.data[i].mapIt(((it * scalar).formatFloat(ffDecimal, 6).parseFloat).T)
+    when T is int:
+      m.data[i] = m.data[i].mapIt(it * scalar)
+    else:
+      m.data[i] = m.data[i].mapIt((it * scalar).formatFloat(ffDecimal, 6).parseFloat)
 
 # TODO: Look into initializing seq with size or using arrays over sequences.
 # e.g. newSeqWith(rows, newSeq[int](cols))
 proc newMatrix*[T](rows: int = 0, cols: int = 0, data: seq[Vector[T]]): Matrix[T] =
+  assert(T is int or T is float, "Unsupported type: T must be of type float or int.")
   if rows == 0 and cols == 0:
     result.rows = data.len
     result.cols = data[0].len
@@ -54,7 +60,7 @@ proc newMatrix*[T](rows: int = 0, cols: int = 0, data: seq[Vector[T]]): Matrix[T
   result.data = data
 
 proc getMinor*[T](m: Matrix[T], row, col: int): Matrix[T] =
-  assert(m.rows > 2 and m.cols > 2, "Matrix must be greater than 2x2")
+  assert(m.rows > 2 and m.cols > 2, "Matrix must be larger than 2x2.")
   let minor = collect(newSeq):
     for i in 0..<m.rows:
       if i != row:
@@ -77,7 +83,8 @@ proc determinant*[T](m: Matrix[T]): T =
     var topRow = m.data[0]
     for i in 0..<m.rows:
       let minor = m.getMinor(0, i)
-      result += (minor.determinant() * (topRow[i] * ((-1) ^ i).T))
+      result += minor.determinant() * topRow[i] * (-1 ^ i).T
+
 
 proc transpose*[T](m: Matrix[T]): Matrix[T] =
   result.rows = m.cols
@@ -102,6 +109,6 @@ proc inverse*[T](m: Matrix[T]): Matrix[T] =
       result.data.add(@[])
       for j in 0..<m.cols:
         let minor = m.getMinor(i, j)
-        result.data[^1].add(minor.determinant() * ((-1) ^ (i + j)).T)
+        result.data[^1].add(minor.determinant() * (-1 ^ (i + j)).T)
     result = result.transpose()
   result *= (1 / m.determinant())
