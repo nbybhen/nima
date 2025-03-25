@@ -2,7 +2,7 @@ import unittest
 import nima/vector
 
 suite "Vector operations":
-  var vecA = newVector(@[1,2,3])
+  var vecA = initVector(@[1,2,3])
   var vecB = newVector(@[4,5,6])
 
   test "Addition":

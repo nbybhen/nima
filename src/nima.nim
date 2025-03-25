@@ -26,18 +26,17 @@ proc buildVector*(name: string): Vector[float] =
 proc soeRepl(): Matrix[float] =
   # TODO: Exception handling + input cleaning
   let num = readLineFromStdin("Enter the number of equations (e.g. 3): ").parseInt
-  var mtx = newMatrix(num, num, data = @[newVector[float](@[])])
-  var vec = newMatrix[float](num, 1, @[])
-  var buf = 0.0
+  var mtx = initMatrix[float](num, num, d = @[initVector[float](@[])])
+  var vec = initMatrix[float](num, 1, d = @[initVector[float]()])
   for i in 0..<num:
     mtx.data[i] = (readLine(stdin).splitWhitespace().mapIt(it.parseFloat))
-    vec.data.add(@[mtx.data[i].pop()])
+    vec.data[i] = @[mtx.data[i].pop()]
     if i != num - 1:
       mtx.data.add(@[])
+      vec.data.add(@[])
   result = mtx.inverse()
   result = (result * vec)
   result.data = result.data.mapIt(it.map(x => round(x, 2)))
-
 
 var parser = newParser:
   help(&"Nima {writeVersion()} (CLI calculator)")

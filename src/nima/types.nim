@@ -1,0 +1,2 @@
+type
+  IntOrFloat* = int | float
