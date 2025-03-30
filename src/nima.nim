@@ -1,9 +1,9 @@
-import nima/[matrix, vector]
+import nima/[types, matrix, vector]
+import solver/calc
 import std/[strformat, sugar, math, rdstdin, sequtils]
 import argparse
 
 proc writeVersion(): string = "0.0.1"
-
 
 proc buildMatrix*(name: string): Matrix[float] =
   let
@@ -26,7 +26,7 @@ proc buildVector*(name: string): Vector[float] =
 proc soeRepl(): Matrix[float] =
   # TODO: Exception handling + input cleaning
   let num = readLineFromStdin("Enter the number of equations (e.g. 3): ").parseInt
-  var mtx = initMatrix[float](num, num, d = @[initVector[float](@[])])
+  var mtx = initMatrix[float](num, num, d = @[])
   var vec = initMatrix[float](num, 1, d = @[initVector[float]()])
   for i in 0..<num:
     mtx.data[i] = (readLine(stdin).splitWhitespace().mapIt(it.parseFloat))
@@ -38,43 +38,47 @@ proc soeRepl(): Matrix[float] =
   result = (result * vec)
   result.data = result.data.mapIt(it.map(x => round(x, 2)))
 
-var parser = newParser:
-  help(&"Nima {writeVersion()} (CLI calculator)")
-  command("solve"):
-    flag("--soe", help="Solves a system of equations")
-    run:
-      if opts.soe:
-        echo "Solving system of equations..."
-        # TODO: Format returned data
-        echo &"Solution: {soeRepl().data}"
-  command("vector"):
-    flag("--scale", help="Multiplies vector by scalar")
-    option("--s", help="Value to multiply vector by", default=some("1"))
-    run:
-      if opts.scale:
-        echo "Scaling vector..."
-        var vecA = buildVector("A")
-        vecA.scalarMult(opts.s.parseFloat())
-        echo &"Vector A: {repr(vecA)}"
-  command("matrix"):
-    flag("--add", help="Add two matrices")
-    flag("--sub", help="Subtract two matrices")
-    flag("--mul", help="Multiply two matrices")
-    flag("--det", help="Calculate determinant")
-    flag("--inv", help="Calculate inverse")
-    run:
-      let matA = buildMatrix("A")
-      if opts.add:
-        let matB = buildMatrix("B")
-        echo &"Matrix C: {matA + matB}"
-      elif opts.sub:
-        let matB = buildMatrix("B")
-        echo &"Matrix C: {matA - matB}"
-      elif opts.mul:
-        let matB = buildMatrix("B")
-        echo &"Matrix C: {matA * matB}"
-      elif opts.det:
-        echo &"Determinant of Matrix A: {matA.determinant()}"
-      elif opts.inv:
-        echo &"Inverse of Matrix A: {repr(matA.inverse())}"
-parser.run()
+when isMainModule:
+  let repl = readLineFromStdin("> ")
+  var lexer = Lexer(src: repl)
+  discard lexer.tokenize()
+  # var parser = newParser:
+  #   help(&"Nima {writeVersion()} (CLI calculator)")
+  #   command("solve"):
+  #     flag("--soe", help="Solves a system of equations")
+  #     run:
+  #       if opts.soe:
+  #         echo "Solving system of equations..."
+  #         # TODO: Format returned data
+  #         echo &"Solution: {soeRepl().data}"
+  #   command("vector"):
+  #     flag("--scale", help="Multiplies vector by scalar")
+  #     option("--s", help="Value to multiply vector by", default=some("1"))
+  #     run:
+  #       if opts.scale:
+  #         echo "Scaling vector..."
+  #         var vecA = buildVector("A")
+  #         vecA.scalarMult(opts.s.parseFloat())
+  #         echo &"Vector A: {repr(vecA)}"
+  #   command("matrix"):
+  #     flag("--add", help="Add two matrices")
+  #     flag("--sub", help="Subtract two matrices")
+  #     flag("--mul", help="Multiply two matrices")
+  #     flag("--det", help="Calculate determinant")
+  #     flag("--inv", help="Calculate inverse")
+  #     run:
+  #       let matA = buildMatrix("A")
+  #       if opts.add:
+  #         let matB = buildMatrix("B")
+  #         echo &"Matrix C: {matA + matB}"
+  #       elif opts.sub:
+  #         let matB = buildMatrix("B")
+  #         echo &"Matrix C: {matA - matB}"
+  #       elif opts.mul:
+  #         let matB = buildMatrix("B")
+  #         echo &"Matrix C: {matA * matB}"
+  #       elif opts.det:
+  #         echo &"Determinant of Matrix A: {matA.determinant()}"
+  #       elif opts.inv:
+  #         echo &"Inverse of Matrix A: {repr(matA.inverse())}"
+  # parser.run()

@@ -1,8 +1,9 @@
 import unittest
-import std/strformat
+import std/[strformat, times]
 import nima/matrix
 
 suite "Matrix operations":
+  const start = cpuTime()
   var matA = initMatrix(d = @[@[1, 2], @[3, 4]])
   var matB = initMatrix(d = @[@[5, 6], @[7, 8]])
   var matC = initMatrix(d = @[@[1, 2, 3], @[4, 5, 6], @[7, 8, 9]])
@@ -35,3 +36,5 @@ suite "Matrix operations":
   test "Transpose":
     var matT = initMatrix(d = @[ @[6, 4, 24], @[1, -9, 8] ])
     check matT.transpose() == initMatrix(d = @[ @[6, 1], @[4, -9], @[24, 8] ])
+
+  echo &"=== Time Elapsed: {cpuTime() - start} ==="
