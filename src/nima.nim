@@ -1,5 +1,5 @@
 import nima/[types, matrix, vector]
-import solver/calc
+import solver/[parser, calc, interpreter]
 import std/[strformat, sugar, math, rdstdin, sequtils]
 import argparse
 
@@ -39,9 +39,15 @@ proc soeRepl(): Matrix[float] =
   result.data = result.data.mapIt(it.map(x => round(x, 2)))
 
 when isMainModule:
-  let repl = readLineFromStdin("> ")
-  var lexer = Lexer(src: repl)
-  discard lexer.tokenize()
+  while true:
+    let repl = readLineFromStdin("\n> ")
+    var lexer = Lexer(src: repl)
+    var p = Parser(src: lexer.tokenize())
+    let parsed = p.parse()
+    p.print(parsed)
+    var compiler = Interpreter(tree: parsed)
+    compiler.interpret()
+
   # var parser = newParser:
   #   help(&"Nima {writeVersion()} (CLI calculator)")
   #   command("solve"):

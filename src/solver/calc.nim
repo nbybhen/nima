@@ -1,6 +1,6 @@
 import std/[strformat, strutils]
 
-type TokenKind = enum
+type TokenKind* = enum
   tkInt
   tkIdent
   tkFloat
@@ -10,17 +10,20 @@ type TokenKind = enum
   tkRightBracket
   tkEqual
   tkComma
+  tkAdd
+  tkMult
+  tkEOF
 
-type Token = object
-  case kind: TokenKind
+type Token* = object
+  case kind*: TokenKind
   of tkInt:
-    valInt: int
+    valInt*: int
   of tkFloat:
-    valFloat: float
+    valFloat*: float
   of tkIdent:
-    valIdent: string
+    valIdent*: string
   else:
-    val: char
+    val*: char
 
 type Lexer* = object
   src*: string
@@ -29,13 +32,13 @@ type Lexer* = object
 
 template isAtEnd(self: Lexer): bool = self.current >= self.src.len
 
-proc advance(self: var Lexer): char =
-  self.current += 1
-  self.src[self.current - 1]
-
 template isAlpha(c: char): bool = c in 'a'..'z' or c in 'A'..'Z'
 
 template isNumeric(c: char): bool = c in '0'..'9' or c == '.'
+
+proc advance(self: var Lexer): char =
+  self.current += 1
+  self.src[self.current - 1]
 
 proc peek(self: Lexer): char =
   if self.isAtEnd():
@@ -80,6 +83,10 @@ proc tokenize*(self: var Lexer): seq[Token] =
       self.tokens.add(Token(kind: tkRightBracket, val: ']'))
     of '=':
       self.tokens.add(Token(kind: tkEqual, val: '='))
+    of '+':
+      self.tokens.add(Token(kind: tkAdd, val: '+'))
+    of '*':
+      self.tokens.add(Token(kind: tkMult, val: '*'))
     of ' ': discard
     of ',':
       self.tokens.add(Token(kind: tkComma, val: ','))
@@ -87,5 +94,5 @@ proc tokenize*(self: var Lexer): seq[Token] =
       echo &"Invalid token: {self.src[self.current-1]}"
       break
 
-  echo &"Tokens: {self.tokens}"
+  self.tokens.add(Token(kind: tkEOF, val: '\0'))
   self.tokens

@@ -5,11 +5,11 @@ import types
 # TODO: Optional argument for d arg
 proc initMatrix*[T: IntOrFloat](r: int = 0, c: int = 0, d: seq[seq[T]]): Matrix[T] =
   result = Matrix[T](rows: r, cols: c, data: d)
-  if d.len() > 0:
+  if d.len > 0:
     if r == 0:
-      result.rows = d.len()
+      result.rows = d.len
     if c == 0:
-      result.cols = d[0].len()
+      result.cols = d[0].len
   else:
     result.data = newSeqWith(r, newSeq[T](c))
 
