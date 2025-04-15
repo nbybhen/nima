@@ -42,9 +42,11 @@ when isMainModule:
   while true:
     let repl = readLineFromStdin("\n> ")
     var lexer = Lexer(src: repl)
+    
     var p = Parser(src: lexer.tokenize())
     let parsed = p.parse()
     p.print(parsed)
+
     var compiler = Interpreter(tree: parsed)
     compiler.interpret()
 
