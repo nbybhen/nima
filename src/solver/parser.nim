@@ -6,19 +6,19 @@ type Parser* = object
   current: int = 0
 
 type AstKind* = enum
-  NUD,
-  LED
+  Unary
+  Binary
 
-type Ast* = ref object
+type Expr* = ref object
   case kind*: AstKind
-  of NUD:
-    val*: Token
-  of LED:
-    left*: Ast
+  of Binary:
+    left*: Expr
     op*: Token
-    right*: Ast
+    right*: Expr
+  of Unary:
+    val*: Token
 
-const bindingPower = {'+': 10, '*': 20}.toTable
+const bindingPower = {'+': 10, '*': 20, '=': 5}.toTable
 
 template peek(self: Parser): Token = self.src[self.current]
 
@@ -26,8 +26,8 @@ proc advance(self: var Parser): Token =
   self.current += 1
   self.src[self.current - 1]
 
-proc expr(self: var Parser, rbp: int): Ast =
-  var left = Ast(kind: NUD, val: self.advance())
+proc expression(self: var Parser, rbp: int): Expr =
+  var left = Expr(kind: Unary, val: self.advance())
   if self.peek.kind == tkEOF:
     return left
 
@@ -35,21 +35,25 @@ proc expr(self: var Parser, rbp: int): Ast =
   case op.kind:
   of tkAdd, tkMult:
     while bindingPower[op.val] > rbp and self.peek.kind != tkEOF:
-      left = Ast(kind: LED, left: left, op: self.advance(), right: self.expr(bindingPower[op.val]))
+      left = Expr(kind: Binary, left: left, op: self.advance(), right: self.expression(bindingPower[op.val]))
   else:
     return left
   left
 
-proc parse*(self: var Parser): Ast =
-  self.expr(0)
+proc parse*(self: var Parser): Expr =
+  self.expression(0)
 
-proc print*(self: var Parser, node: Ast) =
-  echo &"Root: {node[]}\n"
+proc cleanPrint*(node: Expr, prefix: string = "", isLeft: bool = true) =
+  const leftBar = "└──"
+  const rightBar = "├──"
+
   case node.kind:
-  of LED:
-    echo "Left ->"
-    self.print(node[].left)
-    echo "Right ->"
-    self.print(node[].right)
-  of NUD:
-    node[].val.echo "\n"
+  of Binary:
+    echo leftBar, node[].op
+    cleanPrint(node.right, prefix & "    ", false)
+    cleanPrint(node.left, prefix & "    ", true)
+  of Unary:
+    if isLeft:
+      echo prefix, leftBar, node[].val
+    else:
+      echo prefix, rightBar, node[].val

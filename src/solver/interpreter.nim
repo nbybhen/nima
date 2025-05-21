@@ -8,7 +8,6 @@ type NumKind* = enum
   nkFloat,
   nkInt
 
-
 type Obj = object
   case kind: ObjKind
   of Number:
@@ -19,11 +18,11 @@ type Obj = object
       valInt: int
 
 type Interpreter* = object
-  tree*: Ast
+  tree*: Expr
 
-proc traverse*(self: var Interpreter, tree: Ast): Obj =
+proc traverse*(self: var Interpreter, tree: Expr): Obj =
   case tree.kind:
-  of LED:
+  of Binary:
     let op = tree.op
     var left = self.traverse(tree.left)
     var right = self.traverse(tree.right)
@@ -48,7 +47,7 @@ proc traverse*(self: var Interpreter, tree: Ast): Obj =
           return Obj(kind: Number, numKind: nkFloat, valFloat: left.valInt.toFloat * right.valFloat)
         return Obj(kind: Number, numKind: nkInt, valInt: left.valInt * right.valInt)
     else:
-      echo &"{op.kind} not implemented for LED"
+      echo &"{op.kind} not implemented for Binary"
   else:
     case tree.val.kind:
     of tkInt:
@@ -56,7 +55,7 @@ proc traverse*(self: var Interpreter, tree: Ast): Obj =
     of tkFloat:
       return Obj(kind: Number, numKind: nkFloat, valFloat: tree.val.valFloat)
     else:
-      echo &"{tree.val.kind} not implemented for NUD"
+      echo &"{tree.val.kind} not implemented for Unary"
 
 proc interpret*(self: var Interpreter) =
   echo "Output: ", self.traverse(self.tree)

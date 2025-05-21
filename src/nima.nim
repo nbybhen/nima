@@ -44,8 +44,8 @@ when isMainModule:
     var lexer = Lexer(src: repl)
     
     var p = Parser(src: lexer.tokenize())
-    let parsed = p.parse()
-    p.print(parsed)
+    let parsed  = p.parse()
+    parsed.cleanPrint()
 
     var compiler = Interpreter(tree: parsed)
     compiler.interpret()
