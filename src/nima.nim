@@ -39,15 +39,17 @@ proc soeRepl(): Matrix[float] =
   result.data = result.data.mapIt(it.map(x => round(x, 2)))
 
 when isMainModule:
+  var compiler = Interpreter(tree: Expr())
   while true:
-    let repl = readLineFromStdin("\n> ")
+    stdout.write("> ")
+    let repl = stdin.readLine()
     var lexer = Lexer(src: repl)
     
     var p = Parser(src: lexer.tokenize())
     let parsed  = p.parse()
     parsed.cleanPrint()
-
-    var compiler = Interpreter(tree: parsed)
+    
+    compiler.tree = parsed
     compiler.interpret()
 
   # var parser = newParser:

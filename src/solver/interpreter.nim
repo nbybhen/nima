@@ -53,6 +53,8 @@ proc traverse*(self: var Interpreter, tree: Expr): Obj =
         elif right.numKind == nkFloat:
           return Obj(kind: Number, numKind: nkFloat, valFloat: left.valInt.toFloat + right.valFloat)
         return Obj(kind: Number, numKind: nkInt, valInt: left.valInt + right.valInt)
+      elif left.kind == String and right.kind == String:
+        return Obj(kind: String, valStr: left.valStr & right.valStr)
     of tkMult:
       if left.kind == Number and right.kind == Number:
         if left.numKind == nkFloat and right.numKind == nkFloat:
@@ -62,13 +64,9 @@ proc traverse*(self: var Interpreter, tree: Expr): Obj =
         elif right.numKind == nkFloat:
           return Obj(kind: Number, numKind: nkFloat, valFloat: left.valInt.toFloat * right.valFloat)
         return Obj(kind: Number, numKind: nkInt, valInt: left.valInt * right.valInt)
-    of tkEqual:
-      if left.kind == String:
-        self.globals[left.valStr] = right
-      echo &"ASSIGN {left.valStr} = {self.globals[left.valStr].value}"
     else:
       echo &"{op.kind} not implemented for Binary"
-  else:
+  of Unary:
     case tree.val.kind:
     of tkInt:
       return Obj(kind: Number, numKind: nkInt, valInt: tree.val.valInt)
@@ -78,7 +76,18 @@ proc traverse*(self: var Interpreter, tree: Expr): Obj =
       return Obj(kind: String, valStr: tree.val.valIdent)
     else:
       echo &"{tree.val.kind} not implemented for Unary"
+  of Variable:
+    if not self.globals.contains(tree.varName.valIdent):
+      echo &"Variable {tree.varName.valIdent} isn't defined!"
+      return
+    return self.globals[tree.varName.valIdent]
+  of Assign:
+    let val = self.traverse(self.tree.assignVal)
+    self.globals[self.tree.assignName.valIdent] = val
+
+    return val
+  else:
+    echo "NOT IMPLEMENTED"
 
 proc interpret*(self: var Interpreter) =
-  self.globals = initTable[string, Obj]()
   echo "Output: ", self.traverse(self.tree)
