@@ -36,12 +36,12 @@ type Interpreter* = object
   tree*: Expr
   globals: Table[string, Obj]
 
-proc traverse*(self: var Interpreter, tree: Expr): Obj =
+proc traverseExpr*(self: var Interpreter, tree: Expr): Obj =
   case tree.kind:
   of Binary:
     let op = tree.op
-    var left = self.traverse(tree.left)
-    var right = self.traverse(tree.right)
+    var left = self.traverseExpr(tree.left)
+    var right = self.traverseExpr(tree.right)
 
     case op.kind:
     of tkAdd:
@@ -73,21 +73,23 @@ proc traverse*(self: var Interpreter, tree: Expr): Obj =
     of tkFloat:
       return Obj(kind: Number, numKind: nkFloat, valFloat: tree.val.valFloat)
     of tkIdent:
-      return Obj(kind: String, valStr: tree.val.valIdent)
+      if not self.globals.contains(tree.val.valIdent):
+        echo &"Variable {tree.val.valIdent} isn't defined!"
+        return
+      return self.globals[tree.val.valIdent]
     else:
       echo &"{tree.val.kind} not implemented for Unary"
-  of Variable:
-    if not self.globals.contains(tree.varName.valIdent):
-      echo &"Variable {tree.varName.valIdent} isn't defined!"
-      return
-    return self.globals[tree.varName.valIdent]
-  of Assign:
-    let val = self.traverse(self.tree.assignVal)
-    self.globals[self.tree.assignName.valIdent] = val
-
-    return val
   else:
     echo "NOT IMPLEMENTED"
 
-proc interpret*(self: var Interpreter) =
-  echo "Output: ", self.traverse(self.tree)
+proc traverse(self: var Interpreter, tree: Stmt): Obj = 
+  case tree.kind:
+  of ExprStmt:
+    return self.traverseExpr(tree.expression)
+  of VarStmt:
+    let val = self.traverseExpr(tree.varVal)
+    self.globals[tree.varName.valIdent] = val
+    return val
+
+proc interpret*(self: var Interpreter, tree: Stmt) =
+  echo "Output: ", self.traverse(tree).value

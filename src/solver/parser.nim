@@ -9,7 +9,6 @@ type AstKind* = enum
   Unary
   Binary
   Variable
-  Assign
 
 type Expr* = ref object
   case kind*: AstKind
@@ -21,9 +20,18 @@ type Expr* = ref object
     val*: Token
   of Variable:
     varName*: Token
-  of Assign:
-    assignName*: Token
-    assignVal*: Expr
+
+type StmtKind* = enum 
+  ExprStmt
+  VarStmt
+
+type Stmt* = ref object
+  case kind*: StmtKind
+  of ExprStmt:
+    expression*: Expr
+  of VarStmt:
+    varName*: Token
+    varVal*: Expr
 
 const bindingPower = {'+': 10, '*': 20, '=': 5}.toTable
 
@@ -33,14 +41,26 @@ proc advance(self: var Parser): Token {.inline.} =
   self.current += 1
   self.src[self.current - 1]
 
-proc nud(self: var Parser): Expr {.inline.} = 
-  let val = self.advance()
+# Forward Decls
 
-  case val.kind:
+proc parseAssignment() = discard  
+
+proc expression(self: var Parser, rbp: int): Expr
+
+proc parseStatement(self: var Parser): Stmt = 
+  case self.peek.kind:
   of tkIdent:
-    return Expr(kind: Variable, varName: val)
+    let name = self.advance()
+    if self.advance().kind == tkEqual:
+      let val = self.expression(0)
+      return Stmt(kind: VarStmt, varName: name, varVal: val)
   else:
-    return Expr(kind: Unary, val: val)
+    let val = self.expression(0)
+    return Stmt(kind: ExprStmt, expression: val)
+
+proc parse*(self: var Parser): Stmt = self.parseStatement()
+
+proc nud(self: var Parser): Expr {.inline.} = Expr(kind: Unary, val: self.advance())
 
 proc led(self: var Parser, left: Expr): Expr {.inline.}
 
@@ -62,16 +82,8 @@ proc led(self: var Parser, left: Expr): Expr {.inline.} =
   let op = self.advance()
   let bp = bindingPower.getOrDefault(op.val, 0);
 
-  if op.val == '=':
-    if left.kind == Variable:
-      return Expr(kind: Assign, assignName: left.varName, assignVal: self.expression(bp - 1))
-    else:
-      echo &"Error: {left.kind} can't be a variable type!"
   Expr(kind: Binary, left: left, op: op, right: self.expression(bp))
 
-
-proc parse*(self: var Parser): Expr =
-  self.expression(0)
 
 proc cleanPrint*(node: Expr, prefix: string = "", isLeft: bool = true) =
   const 
@@ -94,7 +106,17 @@ proc cleanPrint*(node: Expr, prefix: string = "", isLeft: bool = true) =
       echo prefix, leftBar, node[].varName
     else:
       echo prefix, rightBar, node[].varName
-  of Assign:
-    echo prefix, leftBar, &"{node[].assignName} = "
-    cleanPrint(node.assignVal, prefix)
       
+
+proc cleanStmtPrint*(node: Stmt, prefix: string = "", isLeft: bool = true) = 
+  const 
+    rightBar = "└──"
+    leftBar = "├──"
+    spacing = "    "
+
+  case node.kind:
+  of ExprStmt:
+    node[].expression.cleanPrint(prefix, isLeft)
+  of VarStmt:
+    echo node[].varName
+    node[].varVal.cleanPrint(prefix, isLeft)

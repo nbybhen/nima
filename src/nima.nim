@@ -47,10 +47,12 @@ when isMainModule:
     
     var p = Parser(src: lexer.tokenize())
     let parsed  = p.parse()
-    parsed.cleanPrint()
+    parsed.cleanStmtPrint()
+
+    compiler.interpret(parsed)
     
-    compiler.tree = parsed
-    compiler.interpret()
+    # compiler.tree = parsed
+    # compiler.interpret()
 
   # var parser = newParser:
   #   help(&"Nima {writeVersion()} (CLI calculator)")
