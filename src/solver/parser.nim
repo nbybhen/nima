@@ -1,8 +1,8 @@
 import std/[tables, strformat]
-import calc
+import lexer
 
 type Parser* = object
-  src*: seq[calc.Token]
+  src*: seq[lexer.Token]
   current: int = 0
 
 type AstKind* = enum
@@ -37,7 +37,7 @@ proc expression(self: var Parser, rbp: int): Expr =
 
   var op = self.peek
   case op.kind:
-  of tkAdd, tkMult:
+  of tkAdd, tkMult, tkEqual:
     while bindingPower[op.val] > rbp and self.peek.kind != tkEOF:
       left = self.led(left)
   else:

@@ -1,5 +1,5 @@
 import nima/[types, matrix, vector]
-import solver/[parser, calc, interpreter]
+import solver/[parser, lexer, interpreter]
 import std/[strformat, sugar, math, rdstdin, sequtils]
 import argparse
 

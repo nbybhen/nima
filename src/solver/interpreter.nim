@@ -1,8 +1,9 @@
-import std/[strformat]
-import calc, parser
+import std/[strformat, tables]
+import lexer, parser
 
 type ObjKind = enum
   Number
+  String
 
 type NumKind* = enum
   nkFloat,
@@ -16,9 +17,24 @@ type Obj = object
       valFloat: float
     of nkInt:
       valInt: int
+  of String:
+    valStr: string
+
+proc value(obj: Obj): string {.inline.} =
+  # Gets inner value of any Obj type as a string
+  case obj.kind:
+  of String:
+    obj.valStr
+  of Number:
+    case obj.numKind:
+    of nkFloat:
+      $obj.valFloat
+    of nkInt:
+      $obj.valInt
 
 type Interpreter* = object
   tree*: Expr
+  globals: Table[string, Obj]
 
 proc traverse*(self: var Interpreter, tree: Expr): Obj =
   case tree.kind:
@@ -46,6 +62,10 @@ proc traverse*(self: var Interpreter, tree: Expr): Obj =
         elif right.numKind == nkFloat:
           return Obj(kind: Number, numKind: nkFloat, valFloat: left.valInt.toFloat * right.valFloat)
         return Obj(kind: Number, numKind: nkInt, valInt: left.valInt * right.valInt)
+    of tkEqual:
+      if left.kind == String:
+        self.globals[left.valStr] = right
+      echo &"ASSIGN {left.valStr} = {self.globals[left.valStr].value}"
     else:
       echo &"{op.kind} not implemented for Binary"
   else:
@@ -54,8 +74,11 @@ proc traverse*(self: var Interpreter, tree: Expr): Obj =
       return Obj(kind: Number, numKind: nkInt, valInt: tree.val.valInt)
     of tkFloat:
       return Obj(kind: Number, numKind: nkFloat, valFloat: tree.val.valFloat)
+    of tkIdent:
+      return Obj(kind: String, valStr: tree.val.valIdent)
     else:
       echo &"{tree.val.kind} not implemented for Unary"
 
 proc interpret*(self: var Interpreter) =
+  self.globals = initTable[string, Obj]()
   echo "Output: ", self.traverse(self.tree)
