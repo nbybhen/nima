@@ -1,13 +1,13 @@
 import std/[strformat, tables]
 import lexer, parser
 
-type ObjKind = enum
-  Number
-  String
-
-type NumKind* = enum
-  nkFloat,
-  nkInt
+type 
+  NumKind* = enum
+    nkFloat
+    nkInt
+  ObjKind = enum
+    Number
+    String
 
 type Obj = object
   case kind: ObjKind

@@ -5,33 +5,35 @@ type Parser* = object
   src*: seq[lexer.Token]
   current: int = 0
 
-type AstKind* = enum
-  Unary
-  Binary
-  Variable
+type 
+  AstKind* = enum
+    Unary
+    Binary
+    Variable
 
-type Expr* = ref object
-  case kind*: AstKind
-  of Binary:
-    left*: Expr
-    op*: Token
-    right*: Expr
-  of Unary:
-    val*: Token
-  of Variable:
-    varName*: Token
+  StmtKind* = enum 
+    ExprStmt
+    VarStmt
+    
+type
+  Expr* = ref object
+    case kind*: AstKind
+    of Binary:
+      left*: Expr
+      op*: Token
+      right*: Expr
+    of Unary:
+      val*: Token
+    of Variable:
+      varName*: Token
 
-type StmtKind* = enum 
-  ExprStmt
-  VarStmt
-
-type Stmt* = ref object
-  case kind*: StmtKind
-  of ExprStmt:
-    expression*: Expr
-  of VarStmt:
-    varName*: Token
-    varVal*: Expr
+  Stmt* = ref object
+    case kind*: StmtKind
+    of ExprStmt:
+      expression*: Expr
+    of VarStmt:
+      varName*: Token
+      varVal*: Expr
 
 const bindingPower = {'+': 10, '*': 20, '=': 5}.toTable
 
