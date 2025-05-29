@@ -53,8 +53,6 @@ proc traverseExpr*(self: var Interpreter, tree: Expr): Obj =
         elif right.numKind == nkFloat:
           return Obj(kind: Number, numKind: nkFloat, valFloat: left.valInt.toFloat + right.valFloat)
         return Obj(kind: Number, numKind: nkInt, valInt: left.valInt + right.valInt)
-      elif left.kind == String and right.kind == String:
-        return Obj(kind: String, valStr: left.valStr & right.valStr)
     of tkMult:
       if left.kind == Number and right.kind == Number:
         if left.numKind == nkFloat and right.numKind == nkFloat:

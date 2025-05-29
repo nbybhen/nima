@@ -1,16 +1,15 @@
-import std/[tables, strformat]
+import std/[tables, strformat, sugar]
 import lexer
 
 type Parser* = object
-  src*: seq[lexer.Token]
+  src*: seq[Token]
   current: int = 0
 
 type 
   AstKind* = enum
     Unary
     Binary
-    Variable
-
+    List
   StmtKind* = enum 
     ExprStmt
     VarStmt
@@ -24,9 +23,9 @@ type
       right*: Expr
     of Unary:
       val*: Token
-    of Variable:
-      varName*: Token
-
+    of List:
+      inner: seq[Expr]
+    
   Stmt* = ref object
     case kind*: StmtKind
     of ExprStmt:
@@ -37,54 +36,101 @@ type
 
 const bindingPower = {'+': 10, '*': 20, '=': 5}.toTable
 
-template peek(self: Parser): Token = self.src[self.current]
+#
+# Forward declarations
+#
+
+proc parseExpression(self: var Parser, rbp: int): Expr
+
+proc led(self: var Parser, left: Expr): Expr {.inline.}
+
+proc cleanPrint*(node: Expr, prefix: string = "", isLeft: bool = true)
+
+#
+# Helper functions
+#
+
+proc peek(self: Parser): Token {.inline.} = 
+  self.src[self.current]
+
+proc previous(self: Parser): Token {.inline.} =
+  self.src[self.current - 1]
 
 proc advance(self: var Parser): Token {.inline.} =
   self.current += 1
-  self.src[self.current - 1]
+  self.previous()
 
-# Forward Decls
+proc check(self: var Parser, tkType: TokenKind): bool {.inline.} = 
+  if self.peek.kind == tkEOF: false else: self.peek.kind == tkType
 
-proc parseAssignment() = discard  
+proc consume(self: var Parser, tkType: TokenKind): Token {.inline.} =
+  if self.check(tkType): 
+    return self.advance() 
+  else: 
+    echo &"Token is not of type {tkType}"
 
-proc expression(self: var Parser, rbp: int): Expr
+proc match(self: var Parser, tkTypes: varargs[TokenKind]): bool = 
+  for tkType in tkTypes:
+    if self.peek.kind == tkType:
+      discard self.advance()
+      return true
+  return false
+
+proc parseList(self: var Parser): Expr =
+  if self.match(tkLeftBracket):
+    var vec: seq[Expr] = @[]
+    while not self.check(tkRightBracket):
+      vec.add(self.parseExpression(0))
+
+    discard self.match(tkRightBracket)
+    return Expr(kind: List, inner: vec)
+  
+    
+#
+# Parser
+#
+
+proc parseAssignment(self: var Parser): Stmt =
+  let name = self.advance()
+  if self.match(tkEqual):
+    let val = self.parseExpression(0)
+    return Stmt(kind: VarStmt, varName: name, varVal: val)
 
 proc parseStatement(self: var Parser): Stmt = 
   case self.peek.kind:
   of tkIdent:
-    let name = self.advance()
-    if self.advance().kind == tkEqual:
-      let val = self.expression(0)
-      return Stmt(kind: VarStmt, varName: name, varVal: val)
+    return self.parseAssignment()
   else:
-    let val = self.expression(0)
-    return Stmt(kind: ExprStmt, expression: val)
+    return Stmt(kind: ExprStmt, expression: self.parseExpression(0))
 
-proc parse*(self: var Parser): Stmt = self.parseStatement()
+proc parse*(self: var Parser): Stmt = 
+  self.parseStatement()
 
-proc nud(self: var Parser): Expr {.inline.} = Expr(kind: Unary, val: self.advance())
+proc nud(self: var Parser): Expr {.inline.} = 
+  Expr(kind: Unary, val: self.advance())
 
-proc led(self: var Parser, left: Expr): Expr {.inline.}
-
-proc expression(self: var Parser, rbp: int): Expr =
-  var left = self.nud()
-  if self.peek.kind == tkEOF:
-    return left
-
-  var op = self.peek
-  case op.kind:
+proc parseExpression(self: var Parser, rbp: int): Expr =
+  var left =
+    if self.check(tkLeftBracket):
+      self.parseList()
+    else:
+      self.nud()
+ 
+  case self.peek.kind:
   of tkAdd, tkMult, tkEqual:
-    while bindingPower[op.val] > rbp and self.peek.kind != tkEOF:
+    echo self.peek.repr
+    while bindingPower.getOrDefault(self.peek.val, 0) > rbp and self.peek.kind != tkEOF:
       left = self.led(left)
   else:
-    return left
+    echo &"{self.peek.kind} is not yet implemented in parseExpression!"
+
   left
 
 proc led(self: var Parser, left: Expr): Expr {.inline.} =
   let op = self.advance()
   let bp = bindingPower.getOrDefault(op.val, 0);
 
-  Expr(kind: Binary, left: left, op: op, right: self.expression(bp))
+  Expr(kind: Binary, left: left, op: op, right: self.parseExpression(bp))
 
 
 proc cleanPrint*(node: Expr, prefix: string = "", isLeft: bool = true) =
@@ -103,11 +149,12 @@ proc cleanPrint*(node: Expr, prefix: string = "", isLeft: bool = true) =
       echo prefix, leftBar, node[].val
     else:
       echo prefix, rightBar, node[].val
-  of Variable:
-    if isLeft:
-      echo prefix, leftBar, node[].varName
-    else:
-      echo prefix, rightBar, node[].varName
+  of List:
+    echo prefix, leftBar, "List:"
+    for node in node.inner:
+      cleanPrint(node, prefix & spacing, false)
+  else:
+    echo &"Printing for {node.kind} is not yet implemented!"
       
 
 proc cleanStmtPrint*(node: Stmt, prefix: string = "", isLeft: bool = true) = 
@@ -122,3 +169,5 @@ proc cleanStmtPrint*(node: Stmt, prefix: string = "", isLeft: bool = true) =
   of VarStmt:
     echo node[].varName
     node[].varVal.cleanPrint(prefix, isLeft)
+  else:
+    echo &"Printing for {node.kind} is not yet implemented!"
