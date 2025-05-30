@@ -1,4 +1,4 @@
-import std/[strformat, tables]
+import std/[strformat, tables, sugar]
 import lexer, parser
 
 type 
@@ -8,6 +8,7 @@ type
   ObjKind = enum
     Number
     String
+    Vector
 
 type Obj = object
   case kind: ObjKind
@@ -19,6 +20,8 @@ type Obj = object
       valInt: int
   of String:
     valStr: string
+  of Vector:
+    valVec: seq[Obj]
 
 proc value(obj: Obj): string {.inline.} =
   # Gets inner value of any Obj type as a string
@@ -31,6 +34,8 @@ proc value(obj: Obj): string {.inline.} =
       $obj.valFloat
     of nkInt:
       $obj.valInt
+  of Vector:
+    $obj.valVec
 
 type Interpreter* = object
   tree*: Expr
@@ -77,6 +82,11 @@ proc traverseExpr*(self: var Interpreter, tree: Expr): Obj =
       return self.globals[tree.val.valIdent]
     else:
       echo &"{tree.val.kind} not implemented for Unary"
+  of List:
+    let vec = collect(newSeq):
+      for x in tree.inner:
+        self.traverseExpr(x)
+    return Obj(kind: Vector, valVec: vec)
   else:
     echo "NOT IMPLEMENTED"
 

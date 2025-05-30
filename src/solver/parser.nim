@@ -24,8 +24,7 @@ type
     of Unary:
       val*: Token
     of List:
-      inner: seq[Expr]
-    
+      inner*: seq[Expr]   
   Stmt* = ref object
     case kind*: StmtKind
     of ExprStmt:
@@ -81,6 +80,8 @@ proc parseList(self: var Parser): Expr =
     var vec: seq[Expr] = @[]
     while not self.check(tkRightBracket):
       vec.add(self.parseExpression(0))
+
+      discard self.match(tkComma)
 
     discard self.match(tkRightBracket)
     return Expr(kind: List, inner: vec)
@@ -154,7 +155,7 @@ proc cleanPrint*(node: Expr, prefix: string = "", isLeft: bool = true) =
     for node in node.inner:
       cleanPrint(node, prefix & spacing, false)
   else:
-    echo &"Printing for {node.kind} is not yet implemented!"
+    echo &"Printing for Expr::{node.kind} is not yet implemented!"
       
 
 proc cleanStmtPrint*(node: Stmt, prefix: string = "", isLeft: bool = true) = 
@@ -170,4 +171,4 @@ proc cleanStmtPrint*(node: Stmt, prefix: string = "", isLeft: bool = true) =
     echo node[].varName
     node[].varVal.cleanPrint(prefix, isLeft)
   else:
-    echo &"Printing for {node.kind} is not yet implemented!"
+    echo &"Printing for Stmt::{node.kind} is not yet implemented!"
