@@ -33,7 +33,7 @@ type
       varName*: Token
       varVal*: Expr
 
-const bindingPower = {'+': 10, '*': 20, '=': 5}.toTable
+const bindingPower = {'+', '-': 10, '*': 20, '=': 5}.toTable
 
 #
 # Forward declarations
@@ -43,7 +43,7 @@ proc parseExpression(self: var Parser, rbp: int): Expr
 
 proc led(self: var Parser, left: Expr): Expr {.inline.}
 
-proc cleanPrint*(node: Expr, prefix: string = "", isLeft: bool = true)
+proc cleanExprPrint*(node: Expr, prefix: string = "", isLeft: bool = true)
 
 #
 # Helper functions
@@ -118,10 +118,12 @@ proc parseExpression(self: var Parser, rbp: int): Expr =
       self.nud()
  
   case self.peek.kind:
-  of tkAdd, tkMult, tkEqual:
+  of tkAdd, tkSub, tkMult, tkEqual:
     echo self.peek.repr
     while bindingPower.getOrDefault(self.peek.val, 0) > rbp and self.peek.kind != tkEOF:
       left = self.led(left)
+  of tkComma, tkRightBracket, tkEOF:
+    discard
   else:
     echo &"{self.peek.kind} is not yet implemented in parseExpression!"
 
@@ -134,7 +136,7 @@ proc led(self: var Parser, left: Expr): Expr {.inline.} =
   Expr(kind: Binary, left: left, op: op, right: self.parseExpression(bp))
 
 
-proc cleanPrint*(node: Expr, prefix: string = "", isLeft: bool = true) =
+proc cleanExprPrint*(node: Expr, prefix: string = "", isLeft: bool = true) =
   const 
     rightBar = "└──"
     leftBar = "├──"
@@ -143,8 +145,8 @@ proc cleanPrint*(node: Expr, prefix: string = "", isLeft: bool = true) =
   case node.kind:
   of Binary:
     echo prefix, rightBar, node[].op
-    cleanPrint(node.left, prefix & spacing, true)
-    cleanPrint(node.right, prefix & spacing, false)
+    cleanExprPrint(node.left, prefix & spacing, true)
+    cleanExprPrint(node.right, prefix & spacing, false)
   of Unary:
     if isLeft:
       echo prefix, leftBar, node[].val
@@ -153,7 +155,7 @@ proc cleanPrint*(node: Expr, prefix: string = "", isLeft: bool = true) =
   of List:
     echo prefix, leftBar, "List:"
     for node in node.inner:
-      cleanPrint(node, prefix & spacing, false)
+      cleanExprPrint(node, prefix & spacing, false)
   else:
     echo &"Printing for Expr::{node.kind} is not yet implemented!"
       
@@ -166,9 +168,9 @@ proc cleanStmtPrint*(node: Stmt, prefix: string = "", isLeft: bool = true) =
 
   case node.kind:
   of ExprStmt:
-    node[].expression.cleanPrint(prefix, isLeft)
+    node[].expression.cleanExprPrint(prefix, isLeft)
   of VarStmt:
     echo node[].varName
-    node[].varVal.cleanPrint(prefix, isLeft)
+    node[].varVal.cleanExprPrint(prefix, isLeft)
   else:
     echo &"Printing for Stmt::{node.kind} is not yet implemented!"

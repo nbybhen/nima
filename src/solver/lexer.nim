@@ -11,6 +11,7 @@ type TokenKind* = enum
   tkEqual
   tkComma
   tkAdd
+  tkSub
   tkMult
   tkEOF
 
@@ -85,6 +86,8 @@ proc tokenize*(self: var Lexer): seq[Token] =
       self.tokens.add(Token(kind: tkEqual, val: '='))
     of '+':
       self.tokens.add(Token(kind: tkAdd, val: '+'))
+    of '-':
+      self.tokens.add(Token(kind: tkSub, val: '-'))
     of '*':
       self.tokens.add(Token(kind: tkMult, val: '*'))
     of ' ': discard

@@ -7,7 +7,6 @@ type
     nkInt
   ObjKind = enum
     Number
-    String
     Vector
 
 type Obj = object
@@ -18,24 +17,8 @@ type Obj = object
       valFloat: float
     of nkInt:
       valInt: int
-  of String:
-    valStr: string
   of Vector:
     valVec: seq[Obj]
-
-proc value(obj: Obj): string {.inline.} =
-  # Gets inner value of any Obj type as a string
-  case obj.kind:
-  of String:
-    obj.valStr
-  of Number:
-    case obj.numKind:
-    of nkFloat:
-      $obj.valFloat
-    of nkInt:
-      $obj.valInt
-  of Vector:
-    $obj.valVec
 
 type Interpreter* = object
   tree*: Expr
@@ -51,21 +34,27 @@ proc traverseExpr*(self: var Interpreter, tree: Expr): Obj =
     case op.kind:
     of tkAdd:
       if left.kind == Number and right.kind == Number:
-        if left.numKind == nkFloat and right.numKind == nkFloat:
-          return Obj(kind: Number, numKind: nkFloat, valFloat: left.valFloat + right.valFloat)
-        elif left.numKind == nkFloat:
-          return Obj(kind: Number, numKind: nkFloat, valFloat: left.valFloat + right.valInt.toFloat)
-        elif right.numKind == nkFloat:
-          return Obj(kind: Number, numKind: nkFloat, valFloat: left.valInt.toFloat + right.valFloat)
+        let 
+          a = if left.numKind == nkFloat: left.valFloat else: left.valInt.toFloat
+          b = if right.numKind == nkFloat: right.valFloat else: right.valInt.toFloat
+        if left.numKind == nkFloat or right.numKind == nkFloat:
+          return Obj(kind: Number, numKind: nkFloat, valFloat: a + b)
         return Obj(kind: Number, numKind: nkInt, valInt: left.valInt + right.valInt)
+    of tkSub:
+      if left.kind == Number and right.kind == Number:
+        let 
+          a = if left.numKind == nkFloat: left.valFloat else: left.valInt.toFloat
+          b = if right.numKind == nkFloat: right.valFloat else: right.valInt.toFloat
+        if left.numKind == nkFloat or right.numKind == nkFloat:
+          return Obj(kind: Number, numKind: nkFloat, valFloat: a - b)
+        return Obj(kind: Number, numKind: nkInt, valInt: left.valInt - right.valInt)
     of tkMult:
       if left.kind == Number and right.kind == Number:
-        if left.numKind == nkFloat and right.numKind == nkFloat:
-          return Obj(kind: Number, numKind: nkFloat, valFloat: left.valFloat * right.valFloat)
-        elif left.numKind == nkFloat:
-          return Obj(kind: Number, numKind: nkFloat, valFloat: left.valFloat * right.valInt.toFloat)
-        elif right.numKind == nkFloat:
-          return Obj(kind: Number, numKind: nkFloat, valFloat: left.valInt.toFloat * right.valFloat)
+        let 
+          a = if left.numKind == nkFloat: left.valFloat else: left.valInt.toFloat
+          b = if right.numKind == nkFloat: right.valFloat else: right.valInt.toFloat
+        if left.numKind == nkFloat or right.numKind == nkFloat:
+          return Obj(kind: Number, numKind: nkFloat, valFloat: a * b)
         return Obj(kind: Number, numKind: nkInt, valInt: left.valInt * right.valInt)
     else:
       echo &"{op.kind} not implemented for Binary"
@@ -100,4 +89,4 @@ proc traverse(self: var Interpreter, tree: Stmt): Obj =
     return val
 
 proc interpret*(self: var Interpreter, tree: Stmt) =
-  echo "Output: ", self.traverse(tree).value
+  echo "Output: ", self.traverse(tree).repr
